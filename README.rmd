@@ -1,0 +1,85 @@
+---
+output:
+  md_document:
+    variant: markdown_github
+---
+
+# Purpose
+
+Purpose of this work folder.
+
+Ideally store a minimum working example data set in data folder.
+
+Add binary files in bin, and closed R functions in code. Human Readable settings files (e.g. csv) should be placed in settings/
+
+
+```{r}
+
+rm(list = ls()) # Clean your environment:
+gc() # garbage collection - It can be useful to call gc after a large object has been removed, as this may prompt R to return memory to the operating system.
+library(tidyverse)
+if(!require(readxl)) { install.packages("readxl"); require(readxl)} 
+library(readxl)
+if(!require(mFilter)) { install.packages("mFilter"); require(mFilter)} 
+library(mFilter)
+
+list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
+```
+
+```{r}
+Data <- read_excel('/Users/diaz/Documents/Masters/Coursework/First Semester/Macroeconomics/Project/Macro Project/data/Logged_Data.xlsx',
+                   sheet = "Logged Data")  # change to your sheet name
+
+head(Data)
+colnames(Data)
+```
+
+```{r}
+# Apply HP filter to logged quantity variables
+hp_gdp  <- hpfilter(Data$Log_GDP,  freq = 1600)
+hp_cons <- hpfilter(Data$Log_Cons, freq = 1600)
+hp_debt <- hpfilter(Data$Log_Debt, freq = 1600)
+hp_inf  <- hpfilter(Data$Inflation, freq = 1600)
+hp_ffr  <- hpfilter(Data$FFR,       freq = 1600)
+```
+
+```{r}
+# Extract cyclical components
+cycle_gdp  <- hp_gdp$cycle
+cycle_cons <- hp_cons$cycle
+cycle_debt <- hp_debt$cycle
+cycle_inf  <- hp_inf$cycle
+cycle_ffr  <- hp_ffr$cycle
+```
+
+```{r}
+sd_gdp  <- sd(cycle_gdp)  * 100
+sd_cons <- sd(cycle_cons) * 100
+sd_debt <- sd(cycle_debt) * 100
+sd_inf  <- sd(cycle_inf)  * 100
+sd_ffr  <- sd(cycle_ffr)  * 100
+```
+
+```{r}
+corr_cons <- cor(cycle_cons, cycle_gdp)
+corr_debt <- cor(cycle_debt, cycle_gdp)
+corr_inf  <- cor(cycle_inf,  cycle_gdp)
+corr_ffr  <- cor(cycle_ffr,  cycle_gdp)
+```
+
+```{r}
+# Print results
+cat("=== Standard Deviations (%) ===\n")
+cat("GDP:         ", round(sd_gdp,  3), "\n")
+cat("Consumption: ", round(sd_cons, 3), "\n")
+cat("Public Debt: ", round(sd_debt, 3), "\n")
+cat("Inflation:   ", round(sd_inf,  3), "\n")
+cat("Fed Funds:   ", round(sd_ffr,  3), "\n")
+
+cat("\n=== Correlations with Output ===\n")
+cat("Consumption: ", round(corr_cons, 3), "\n")
+cat("Public Debt: ", round(corr_debt, 3), "\n")
+cat("Inflation:   ", round(corr_inf,  3), "\n")
+cat("Fed Funds:   ", round(corr_ffr,  3), "\n")
+```
+
