@@ -22,16 +22,21 @@ library(mFilter)
 list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
 ```
 
+#Loading Data
+
 ```{r}
-Data <- read_excel('/Users/diaz/Documents/Masters/Coursework/First Semester/Macroeconomics/Project/Macro Project/data/Logged_Data.xlsx',
+Data <- read_excel('/Users/diaz/Documents/Masters/Coursework/First Semester/Macroeconomics/Project/Macro Project/data/Macro_Data.xlsx',
                    sheet = "Logged Data")  # change to your sheet name
 
 head(Data)
 colnames(Data)
 ```
 
+#Applying HP filter to logged quantity variables
+
+We do this because the model's business cycle statistics are computed from cyclical component, which are the deviations from trend. We thus need to apply the HP filter to each log-transformed series (which we can't do in excel directly)
+
 ```{r}
-# Apply HP filter to logged quantity variables
 hp_gdp  <- hpfilter(Data$Log_GDP,  freq = 1600)
 hp_cons <- hpfilter(Data$Log_Cons, freq = 1600)
 hp_debt <- hpfilter(Data$Log_Debt, freq = 1600)
@@ -39,14 +44,17 @@ hp_inf  <- hpfilter(Data$Inflation, freq = 1600)
 hp_ffr  <- hpfilter(Data$FFR,       freq = 1600)
 ```
 
+# Extracting cyclical components of the data
+
 ```{r}
-# Extract cyclical components
 cycle_gdp  <- hp_gdp$cycle
 cycle_cons <- hp_cons$cycle
 cycle_debt <- hp_debt$cycle
 cycle_inf  <- hp_inf$cycle
 cycle_ffr  <- hp_ffr$cycle
 ```
+
+# Obtaining the Standard Deviations
 
 ```{r}
 sd_gdp  <- sd(cycle_gdp)  * 100
@@ -56,6 +64,8 @@ sd_inf  <- sd(cycle_inf)  * 100
 sd_ffr  <- sd(cycle_ffr)  * 100
 ```
 
+# Obtaining the Correlations
+
 ```{r}
 corr_cons <- cor(cycle_cons, cycle_gdp)
 corr_debt <- cor(cycle_debt, cycle_gdp)
@@ -63,8 +73,9 @@ corr_inf  <- cor(cycle_inf,  cycle_gdp)
 corr_ffr  <- cor(cycle_ffr,  cycle_gdp)
 ```
 
+# Printing results
+
 ```{r}
-# Print results
 cat("=== Standard Deviations (%) ===\n")
 cat("GDP:         ", round(sd_gdp,  3), "\n")
 cat("Consumption: ", round(sd_cons, 3), "\n")
