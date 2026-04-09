@@ -18,11 +18,13 @@ if(!require(readxl)) { install.packages("readxl"); require(readxl)}
 library(readxl)
 if(!require(mFilter)) { install.packages("mFilter"); require(mFilter)} 
 library(mFilter)
+if(!require(knitr)) { install.packages("knitr"); require(knitr)} 
+library(knitr)
 
 list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
 ```
 
-#Loading Data
+# Loading Data
 
 ```{r}
 Data <- read_excel('/Users/diaz/Documents/Masters/Coursework/First Semester/Macroeconomics/Project/Macro Project/data/Macro_Data.xlsx',
@@ -32,7 +34,7 @@ head(Data)
 colnames(Data)
 ```
 
-#Applying HP filter to logged quantity variables
+# Applying HP filter to logged quantity variables
 
 We do this because the model's business cycle statistics are computed from cyclical component, which are the deviations from trend. We thus need to apply the HP filter to each log-transformed series (which we can't do in excel directly)
 
@@ -73,20 +75,32 @@ corr_inf  <- cor(cycle_inf,  cycle_gdp)
 corr_ffr  <- cor(cycle_ffr,  cycle_gdp)
 ```
 
-# Printing results
+# Build the results table
 
 ```{r}
-cat("=== Standard Deviations (%) ===\n")
-cat("GDP:         ", round(sd_gdp,  3), "\n")
-cat("Consumption: ", round(sd_cons, 3), "\n")
-cat("Public Debt: ", round(sd_debt, 3), "\n")
-cat("Inflation:   ", round(sd_inf,  3), "\n")
-cat("Fed Funds:   ", round(sd_ffr,  3), "\n")
+results_table <- data.frame(
+  Variable = c("Output", "Household Consumption", "Inflation (CPI)", 
+               "Public Debt", "Federal Funds Rate"),
+  
+  Std_Dev = c(round(sd_gdp,  3),
+              round(sd_cons, 3),
+              round(sd_inf,  3),
+              round(sd_debt, 3),
+              round(sd_ffr,  3)),
+  
+  Corr_with_Output = c(1.000,
+                       round(corr_cons, 3),
+                       round(corr_inf,  3),
+                       round(corr_debt, 3),
+                       round(corr_ffr,  3))
+)
+```
 
-cat("\n=== Correlations with Output ===\n")
-cat("Consumption: ", round(corr_cons, 3), "\n")
-cat("Public Debt: ", round(corr_debt, 3), "\n")
-cat("Inflation:   ", round(corr_inf,  3), "\n")
-cat("Fed Funds:   ", round(corr_ffr,  3), "\n")
+# Print results as a clean table
+
+```{r}
+colnames(results_table) <- c("Variable", "Standard Deviation (%)", 
+                              "Correlation with Output")
+kable(results_table, align = c("l", "c", "c"))
 ```
 

@@ -9,8 +9,8 @@ gc() # garbage collection - It can be useful to call gc after a large object has
 ```
 
     ##           used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
-    ## Ncells  562991 30.1    1250718 66.8         NA   715654 38.3
-    ## Vcells 1074791  8.3    8388608 64.0      16384  2010326 15.4
+    ## Ncells  563058 30.1    1250910 66.9         NA   715654 38.3
+    ## Vcells 1075000  8.3    8388608 64.0      16384  2010326 15.4
 
 ``` r
 library(tidyverse)
@@ -42,11 +42,18 @@ if(!require(mFilter)) { install.packages("mFilter"); require(mFilter)}
 
 ``` r
 library(mFilter)
+if(!require(knitr)) { install.packages("knitr"); require(knitr)} 
+```
+
+    ## Loading required package: knitr
+
+``` r
+library(knitr)
 
 list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
 ```
 
-#Loading Data
+# Loading Data
 
 ``` r
 Data <- read_excel('/Users/diaz/Documents/Masters/Coursework/First Semester/Macroeconomics/Project/Macro Project/data/Macro_Data.xlsx',
@@ -71,7 +78,7 @@ colnames(Data)
 
     ## [1] "Date"      "Log_GDP"   "Log_Cons"  "Log_Debt"  "Inflation" "FFR"
 
-#Applying HP filter to logged quantity variables
+# Applying HP filter to logged quantity variables
 
 We do this because the model’s business cycle statistics are computed
 from cyclical component, which are the deviations from trend. We thus
@@ -115,71 +122,39 @@ corr_inf  <- cor(cycle_inf,  cycle_gdp)
 corr_ffr  <- cor(cycle_ffr,  cycle_gdp)
 ```
 
-# Printing results
+# Build the results table
 
 ``` r
-cat("=== Standard Deviations (%) ===\n")
+results_table <- data.frame(
+  Variable = c("Output", "Household Consumption", "Inflation (CPI)", 
+               "Public Debt", "Federal Funds Rate"),
+  
+  Std_Dev = c(round(sd_gdp,  3),
+              round(sd_cons, 3),
+              round(sd_inf,  3),
+              round(sd_debt, 3),
+              round(sd_ffr,  3)),
+  
+  Corr_with_Output = c(1.000,
+                       round(corr_cons, 3),
+                       round(corr_inf,  3),
+                       round(corr_debt, 3),
+                       round(corr_ffr,  3))
+)
 ```
 
-    ## === Standard Deviations (%) ===
+# Print results as a clean table
 
 ``` r
-cat("GDP:         ", round(sd_gdp,  3), "\n")
+colnames(results_table) <- c("Variable", "Standard Deviation (%)", 
+                              "Correlation with Output")
+kable(results_table, align = c("l", "c", "c"))
 ```
 
-    ## GDP:          1.224
-
-``` r
-cat("Consumption: ", round(sd_cons, 3), "\n")
-```
-
-    ## Consumption:  1.219
-
-``` r
-cat("Public Debt: ", round(sd_debt, 3), "\n")
-```
-
-    ## Public Debt:  2.543
-
-``` r
-cat("Inflation:   ", round(sd_inf,  3), "\n")
-```
-
-    ## Inflation:    6.816
-
-``` r
-cat("Fed Funds:   ", round(sd_ffr,  3), "\n")
-```
-
-    ## Fed Funds:    1.166
-
-``` r
-cat("\n=== Correlations with Output ===\n")
-```
-
-    ## 
-    ## === Correlations with Output ===
-
-``` r
-cat("Consumption: ", round(corr_cons, 3), "\n")
-```
-
-    ## Consumption:  0.881
-
-``` r
-cat("Public Debt: ", round(corr_debt, 3), "\n")
-```
-
-    ## Public Debt:  -0.371
-
-``` r
-cat("Inflation:   ", round(corr_inf,  3), "\n")
-```
-
-    ## Inflation:    0.126
-
-``` r
-cat("Fed Funds:   ", round(corr_ffr,  3), "\n")
-```
-
-    ## Fed Funds:    0.55
+| Variable              | Standard Deviation (%) | Correlation with Output |
+|:----------------------|:----------------------:|:-----------------------:|
+| Output                |         1.224          |          1.000          |
+| Household Consumption |         1.219          |          0.881          |
+| Inflation (CPI)       |         6.816          |          0.126          |
+| Public Debt           |         2.543          |         -0.371          |
+| Federal Funds Rate    |         1.166          |          0.550          |
