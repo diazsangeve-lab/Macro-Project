@@ -9,7 +9,7 @@ output:
 Providing the r code required to obtain the statistics for our Macroeconomics project.
 
 
-```{r}
+```{r, eval=FALSE}
 
 rm(list = ls()) # Clean your environment:
 gc() # garbage collection - It can be useful to call gc after a large object has been removed, as this may prompt R to return memory to the operating system.
@@ -26,7 +26,7 @@ list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.
 
 # Loading Data
 
-```{r}
+```{r, eval=FALSE}
 Data <- read_excel('/Users/diaz/Documents/Masters/Coursework/First Semester/Macroeconomics/Project/Macro Project/data/Macro_Data.xlsx',
                    sheet = "Logged Data")  # change to your sheet name
 
@@ -38,7 +38,7 @@ colnames(Data)
 
 We do this because the model's business cycle statistics are computed from cyclical component, which are the deviations from trend. We thus need to apply the HP filter to each log-transformed series (which we can't do in excel directly)
 
-```{r}
+```{r, eval=FALSE}
 hp_gdp  <- hpfilter(Data$Log_GDP,  freq = 1600)
 hp_cons <- hpfilter(Data$Log_Cons, freq = 1600)
 hp_debt <- hpfilter(Data$Log_Debt, freq = 1600)
@@ -48,7 +48,7 @@ hp_ffr  <- hpfilter(Data$FFR,       freq = 1600)
 
 # Extracting cyclical components of the data
 
-```{r}
+```{r, eval=FALSE}
 cycle_gdp  <- hp_gdp$cycle
 cycle_cons <- hp_cons$cycle
 cycle_debt <- hp_debt$cycle
@@ -58,7 +58,7 @@ cycle_ffr  <- hp_ffr$cycle
 
 # Obtaining the Standard Deviations
 
-```{r}
+```{r, eval=FALSE}
 sd_gdp  <- sd(cycle_gdp)  * 100
 sd_cons <- sd(cycle_cons) * 100
 sd_debt <- sd(cycle_debt) * 100
@@ -68,7 +68,7 @@ sd_ffr  <- sd(cycle_ffr)  * 100
 
 # Obtaining the Correlations
 
-```{r}
+```{r, eval=FALSE}
 corr_cons <- cor(cycle_cons, cycle_gdp)
 corr_debt <- cor(cycle_debt, cycle_gdp)
 corr_inf  <- cor(cycle_inf,  cycle_gdp)
@@ -77,7 +77,7 @@ corr_ffr  <- cor(cycle_ffr,  cycle_gdp)
 
 # Build the results table
 
-```{r}
+```{r, eval=FALSE}
 results_table <- data.frame(
   Variable = c("Output", "Household Consumption", "Inflation (CPI)", 
                "Public Debt", "Federal Funds Rate"),
