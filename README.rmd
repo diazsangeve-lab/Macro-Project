@@ -20,6 +20,9 @@ if(!require(mFilter)) { install.packages("mFilter"); require(mFilter)}
 library(mFilter)
 if(!require(knitr)) { install.packages("knitr"); require(knitr)} 
 library(knitr)
+if(!require(tseries)) { install.packages("tseries");
+    require(tseries)} 
+library(tseries)
 
 list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
 ```
@@ -42,8 +45,6 @@ We do this because the model's business cycle statistics are computed from cycli
 hp_gdp  <- hpfilter(Data$Log_GDP,  freq = 1600)
 hp_cons <- hpfilter(Data$Log_Cons, freq = 1600)
 hp_debt <- hpfilter(Data$Log_Debt, freq = 1600)
-hp_inf  <- hpfilter(Data$Inflation, freq = 1600)
-hp_ffr  <- hpfilter(Data$FFR,       freq = 1600)
 ```
 
 # Extracting cyclical components of the data
@@ -52,8 +53,33 @@ hp_ffr  <- hpfilter(Data$FFR,       freq = 1600)
 cycle_gdp  <- hp_gdp$cycle
 cycle_cons <- hp_cons$cycle
 cycle_debt <- hp_debt$cycle
-cycle_inf  <- hp_inf$cycle
-cycle_ffr  <- hp_ffr$cycle
+```
+
+# Obtaining Inflation and Fed Funds Rate
+
+```{r}
+inf  <- Data$Inflation
+ffr  <- Data$FFR
+```
+
+# Testing for Stationarity
+
+```{r}
+adf_inf  <- adf.test(Data$Inflation)
+adf_ffr  <- adf.test(Data$FFR)
+cat("Inflation    - p-value:", round(adf_inf$p.value,  3), "\n")
+cat("FFR          - p-value:", round(adf_ffr$p.value,  3), "\n")
+```
+
+# Making FFR Stationary
+
+```{r}
+# First difference of FFR
+diff_ffr  <- diff(Data$FFR)
+
+# Confirm stationarity of differenced FFR
+adf_diff_ffr <- adf.test(diff_ffr)
+cat("ADF p-value after differencing:", round(adf_diff_ffr$p.value, 3), "\n")
 ```
 
 # Obtaining the Standard Deviations
@@ -62,8 +88,8 @@ cycle_ffr  <- hp_ffr$cycle
 sd_gdp  <- sd(cycle_gdp)  * 100
 sd_cons <- sd(cycle_cons) * 100
 sd_debt <- sd(cycle_debt) * 100
-sd_inf  <- sd(cycle_inf)  * 100
-sd_ffr  <- sd(cycle_ffr)  * 100
+sd_inf  <- sd(inf)  * 100
+sd_ffr  <- sd(diff_ffr)  * 100
 ```
 
 # Obtaining the Correlations
@@ -71,8 +97,8 @@ sd_ffr  <- sd(cycle_ffr)  * 100
 ```{r}
 corr_cons <- cor(cycle_cons, cycle_gdp)
 corr_debt <- cor(cycle_debt, cycle_gdp)
-corr_inf  <- cor(cycle_inf,  cycle_gdp)
-corr_ffr  <- cor(cycle_ffr,  cycle_gdp)
+corr_inf  <- cor(inf,  cycle_gdp)
+corr_ffr  <- cor(diff_ffr,  cycle_gdp[-1])
 ```
 
 # Build the results table
