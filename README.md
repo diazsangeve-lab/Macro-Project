@@ -9,19 +9,19 @@ gc() # garbage collection - It can be useful to call gc after a large object has
 ```
 
     ##           used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
-    ## Ncells  563058 30.1    1250910 66.9         NA   715654 38.3
-    ## Vcells 1075000  8.3    8388608 64.0      16384  2010319 15.4
+    ## Ncells  563368 30.1    1251795 66.9         NA   715654 38.3
+    ## Vcells 1075718  8.3    8388608 64.0      16384  2010319 15.4
 
 ``` r
 library(tidyverse)
 ```
 
     ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-    ## ✔ dplyr     1.2.0     ✔ readr     2.2.0
+    ## ✔ dplyr     1.2.1     ✔ readr     2.2.0
     ## ✔ forcats   1.0.1     ✔ stringr   1.6.0
     ## ✔ ggplot2   4.0.2     ✔ tibble    3.3.1
     ## ✔ lubridate 1.9.5     ✔ tidyr     1.3.2
-    ## ✔ purrr     1.2.1     
+    ## ✔ purrr     1.2.2     
     ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
     ## ✖ dplyr::filter() masks stats::filter()
     ## ✖ dplyr::lag()    masks stats::lag()
@@ -49,6 +49,17 @@ if(!require(knitr)) { install.packages("knitr"); require(knitr)}
 
 ``` r
 library(knitr)
+if(!require(tseries)) { install.packages("tseries");
+    require(tseries)} 
+```
+
+    ## Loading required package: tseries
+    ## Registered S3 method overwritten by 'quantmod':
+    ##   method            from
+    ##   as.zoo.data.frame zoo
+
+``` r
+library(tseries)
 
 list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
 ```
@@ -89,8 +100,6 @@ can’t do in excel directly)
 hp_gdp  <- hpfilter(Data$Log_GDP,  freq = 1600)
 hp_cons <- hpfilter(Data$Log_Cons, freq = 1600)
 hp_debt <- hpfilter(Data$Log_Debt, freq = 1600)
-hp_inf  <- hpfilter(Data$Inflation, freq = 1600)
-hp_ffr  <- hpfilter(Data$FFR,       freq = 1600)
 ```
 
 # Extracting cyclical components of the data
@@ -99,9 +108,48 @@ hp_ffr  <- hpfilter(Data$FFR,       freq = 1600)
 cycle_gdp  <- hp_gdp$cycle
 cycle_cons <- hp_cons$cycle
 cycle_debt <- hp_debt$cycle
-cycle_inf  <- hp_inf$cycle
-cycle_ffr  <- hp_ffr$cycle
 ```
+
+# Obtaining Inflation and Fed Funds Rate
+
+``` r
+inf  <- Data$Inflation
+ffr  <- Data$FFR
+```
+
+# Testing for Stationarity
+
+``` r
+adf_inf  <- adf.test(Data$Inflation)
+adf_ffr  <- adf.test(Data$FFR)
+cat("Inflation    - p-value:", round(adf_inf$p.value,  3), "\n")
+```
+
+    ## Inflation    - p-value: 0.017
+
+``` r
+cat("FFR          - p-value:", round(adf_ffr$p.value,  3), "\n")
+```
+
+    ## FFR          - p-value: 0.249
+
+# Making FFR Stationary
+
+``` r
+# First difference of FFR
+diff_ffr  <- diff(Data$FFR)
+
+# Confirm stationarity of differenced FFR
+adf_diff_ffr <- adf.test(diff_ffr)
+```
+
+    ## Warning in adf.test(diff_ffr): p-value smaller than printed p-value
+
+``` r
+cat("ADF p-value after differencing:", round(adf_diff_ffr$p.value, 3), "\n")
+```
+
+    ## ADF p-value after differencing: 0.01
 
 # Obtaining the Standard Deviations
 
@@ -109,8 +157,8 @@ cycle_ffr  <- hp_ffr$cycle
 sd_gdp  <- sd(cycle_gdp)  * 100
 sd_cons <- sd(cycle_cons) * 100
 sd_debt <- sd(cycle_debt) * 100
-sd_inf  <- sd(cycle_inf)  * 100
-sd_ffr  <- sd(cycle_ffr)  * 100
+sd_inf  <- sd(inf)  * 100
+sd_ffr  <- sd(diff_ffr)  * 100
 ```
 
 # Obtaining the Correlations
@@ -118,8 +166,8 @@ sd_ffr  <- sd(cycle_ffr)  * 100
 ``` r
 corr_cons <- cor(cycle_cons, cycle_gdp)
 corr_debt <- cor(cycle_debt, cycle_gdp)
-corr_inf  <- cor(cycle_inf,  cycle_gdp)
-corr_ffr  <- cor(cycle_ffr,  cycle_gdp)
+corr_inf  <- cor(inf,  cycle_gdp)
+corr_ffr  <- cor(diff_ffr,  cycle_gdp[-1])
 ```
 
 # Build the results table
@@ -155,6 +203,6 @@ kable(results_table, align = c("l", "c", "c"))
 |:----------------------|:----------------------:|:-----------------------:|
 | Output                |         1.244          |          1.000          |
 | Household Consumption |         1.236          |          0.884          |
-| Inflation (CPI)       |         1.135          |          0.425          |
+| Inflation (CPI)       |         1.606          |          0.309          |
 | Public Debt           |         2.552          |         -0.356          |
-| Federal Funds Rate    |         1.163          |          0.537          |
+| Federal Funds Rate    |         0.568          |          0.282          |
