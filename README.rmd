@@ -88,8 +88,8 @@ cat("ADF p-value after differencing:", round(adf_diff_ffr$p.value, 3), "\n")
 sd_gdp  <- sd(cycle_gdp)  * 100
 sd_cons <- sd(cycle_cons) * 100
 sd_debt <- sd(cycle_debt) * 100
-sd_inf  <- sd(inf)  * 100
-sd_ffr  <- sd(diff_ffr)  * 100
+sd_inf  <- sd(inf) * 100
+sd_ffr  <- sd(diff_ffr) * 100
 ```
 
 # Obtaining the Correlations

@@ -76,12 +76,12 @@ head(Data)
     ## # A tibble: 6 × 6
     ##   Date                Log_GDP Log_Cons Log_Debt Inflation    FFR
     ##   <dttm>                <dbl>    <dbl>    <dbl>     <dbl>  <dbl>
-    ## 1 1982-01-01 00:00:00    3.91     3.45     2.78    0.0758 0.142 
-    ## 2 1982-04-01 00:00:00    3.91     3.44     2.78    0.0691 0.145 
-    ## 3 1982-07-01 00:00:00    3.90     3.45     2.82    0.0582 0.110 
-    ## 4 1982-10-01 00:00:00    3.90     3.46     2.86    0.0444 0.0929
-    ## 5 1983-01-01 00:00:00    3.92     3.47     2.89    0.0359 0.0865
-    ## 6 1983-04-01 00:00:00    3.93     3.49     2.94    0.0330 0.088
+    ## 1 1982-01-01 00:00:00    3.91     3.45     2.78  0.00888  0.142 
+    ## 2 1982-04-01 00:00:00    3.91     3.44     2.78  0.0145   0.145 
+    ## 3 1982-07-01 00:00:00    3.90     3.45     2.82  0.0174   0.110 
+    ## 4 1982-10-01 00:00:00    3.90     3.46     2.86  0.00307  0.0929
+    ## 5 1983-01-01 00:00:00    3.92     3.47     2.89  0.000684 0.0865
+    ## 6 1983-04-01 00:00:00    3.93     3.49     2.94  0.0116   0.088
 
 ``` r
 colnames(Data)
@@ -125,7 +125,7 @@ adf_ffr  <- adf.test(Data$FFR)
 cat("Inflation    - p-value:", round(adf_inf$p.value,  3), "\n")
 ```
 
-    ## Inflation    - p-value: 0.017
+    ## Inflation    - p-value: 0.02
 
 ``` r
 cat("FFR          - p-value:", round(adf_ffr$p.value,  3), "\n")
@@ -157,8 +157,8 @@ cat("ADF p-value after differencing:", round(adf_diff_ffr$p.value, 3), "\n")
 sd_gdp  <- sd(cycle_gdp)  * 100
 sd_cons <- sd(cycle_cons) * 100
 sd_debt <- sd(cycle_debt) * 100
-sd_inf  <- sd(inf)  * 100
-sd_ffr  <- sd(diff_ffr)  * 100
+sd_inf  <- sd(inf) * 100
+sd_ffr  <- sd(diff_ffr) * 100
 ```
 
 # Obtaining the Correlations
@@ -203,6 +203,6 @@ kable(results_table, align = c("l", "c", "c"))
 |:----------------------|:----------------------:|:-----------------------:|
 | Output                |         1.244          |          1.000          |
 | Household Consumption |         1.236          |          0.884          |
-| Inflation (CPI)       |         1.606          |          0.309          |
+| Inflation (CPI)       |         0.536          |          0.344          |
 | Public Debt           |         2.552          |         -0.356          |
 | Federal Funds Rate    |         0.568          |          0.282          |
