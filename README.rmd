@@ -6,23 +6,15 @@ output:
 
 # Purpose
 
-Providing the r code required to obtain the statistics for our Macroeconomics project.
-
+The primary objective of the accompanying R code is to empirically evaluate the stylised facts of the United States business cycle over a forty-three-year period spanning from Q1 1982 to Q3 2025. Specifically, it is constructed to obtain key macroeconomic time-series data, filter out long-term structural trends, and compute crucial second-order moments, being standard deviations and correlation coefficients.
 
 ```{r}
 
 rm(list = ls()) # Clean your environment:
 gc() # garbage collection - It can be useful to call gc after a large object has been removed, as this may prompt R to return memory to the operating system.
-library(tidyverse)
-if(!require(readxl)) { install.packages("readxl"); require(readxl)} 
-library(readxl)
-if(!require(mFilter)) { install.packages("mFilter"); require(mFilter)} 
-library(mFilter)
-if(!require(knitr)) { install.packages("knitr"); require(knitr)} 
-library(knitr)
-if(!require(tseries)) { install.packages("tseries");
-    require(tseries)} 
-library(tseries)
+
+if(!require(pacman)) { install.packages("pacman"); require(pacman)}
+pacman::p_load(tidyverse, readxl, mFilter, knitr, tseries)
 
 list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
 ```
@@ -129,4 +121,3 @@ colnames(results_table) <- c("Variable", "Standard Deviation (%)",
                               "Correlation with Output")
 kable(results_table, align = c("l", "c", "c"))
 ```
-

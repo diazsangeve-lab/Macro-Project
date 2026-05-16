@@ -5,6 +5,10 @@ date: "2026-05-09"
 output: html_document
 ---
 
+# Purpose
+
+The purpose of this R code is to calculate the steady-state values for US GDP and public debt over the sample period from Q1 1982 to Q3 2025. 
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -13,16 +17,13 @@ rm(list = ls())
 gc()
 
 # Loading Packages 
-if(!require(fredr)) { install.packages("fredr");
-    require(fredr)} 
-if(!require(lubridate)) { install.packages("lubridate");
-    require(lubridate)} 
-library(fredr)
-library(tidyverse)
-library(lubridate)
+if(!require(pacman)) { install.packages("pacman"); require(pacman)}
+pacman::p_load(fredr, lubridate, tidyverse)
 ```
 
 # 1. API configuration
+
+To configure the data pipeline, you must first obtain a free API key by registering for an account on the St. Louis Fed (FRED) website and requesting a key through your account dashboard. To use this key securely without hardcoding your credentials into the script, save it in your local environment file (typically an .Renviron file) as FRED_API_KEY="your_key_here". When the script executes, Sys.getenv("FRED_API_KEY") automatically retrieves this value from your system, keeping your credentials secure and making the code easily reproducible across different machines.
 
 ```{r API}
 # Set your FRED API key
@@ -38,7 +39,6 @@ end_qtr <- as.Date("2025-07-01")
 # Fetch National Accounts and Debt 
 debt_gdp <- fredr(series_id = "GFDEGDQ188S", observation_start = start_qtr, observation_end = end_qtr)
 real_gdp <- fredr(series_id = "GDPC1", observation_start = start_qtr, observation_end = end_qtr)
-real_cons <- fredr(series_id = "PCECC96", observation_start = start_qtr, observation_end = end_qtr)
 
 # Nominal Government Expenditures and Nominal GDP
 gov_exp <- fredr(series_id = "W019RCQ027SBEA", observation_start = start_qtr, observation_end = end_qtr)
@@ -56,39 +56,21 @@ pop <- fredr(series_id = "LFWA64TTUSM647S", observation_start = start_qtr, obser
 # Ensure alignment (assuming data frames are identically ordered by date)
 # 1. Transform to Real Per Capita series
 real_gdp_pc <- real_gdp$value / pop$value
-real_cons_pc <- real_cons$value / pop$value
 
 # (Note: Gov Expenditure and Debt ratios are scale-free, so we can use them directly or construct their real per capita equivalents if needed for standard deviations later)
 g_y_series <- gov_exp$value / nom_gdp$value
 
 # 2. Compute the Steady-State Ratios
 b_y <- mean(debt_gdp$value, na.rm = TRUE) / 100
-c_y <- mean(real_cons_pc / real_gdp_pc, na.rm = TRUE)  # Mathematically identical, conceptually robust
 g_y <- mean(g_y_series, na.rm = TRUE)
 
-# 3. Compute Gross Quarterly Interest Rate (R)
-mean_fed_funds <- mean(fed_funds$value, na.rm = TRUE)
-R <- 1 + (mean_fed_funds / 400)
-
-# 4. Compute Gross Quarterly Inflation (Pi)
-cpi_pct <- (cpi$value / dplyr::lag(cpi$value, 4) - 1) * 100
-mean_inflation <- mean(cpi_pct, na.rm = TRUE)
-Pi <- 1 + (mean_inflation / 400)
-
-# 5. Compute Discount Factor and Primary Surplus
-beta <- Pi / R
-s_y <- ((1 / beta) - 1) * b_y
 
 # 6. Compile Results
 calibrated_results <- tibble(
-  Parameter = c("Debt-to-GDP (b_y)", 
-                "Consumption-to-GDP (c_y)", 
-                "Gov Expenditure-to-GDP (g_y)",
-                "Gross Quarterly Interest Rate (R)", 
-                "Gross Quarterly Inflation (Pi)", 
-                "Discount Factor (beta)", 
-                "Primary Surplus-to-GDP (s_y)"),
-  Value = c(b_y, c_y, g_y, R, Pi, beta, s_y)
+  Parameter = c("Debt-to-GDP (b_y)",
+                "Gov Expenditure-to-GDP (g_y)"
+                ),
+  Value = c(b_y, g_y)
 )
 
 print(calibrated_results)
