@@ -13,8 +13,8 @@ gc() # garbage collection - It can be useful to call gc after a large object has
 ```
 
     ##           used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
-    ## Ncells  564353 30.2    1254610 67.1         NA   715654 38.3
-    ## Vcells 1078109  8.3    8388608 64.0      16384  2010337 15.4
+    ## Ncells  564353 30.2    1254612 67.1         NA   715648 38.3
+    ## Vcells 1078100  8.3    8388608 64.0      16384  2010398 15.4
 
 ``` r
 if(!require(pacman)) { install.packages("pacman"); require(pacman)}
@@ -31,7 +31,7 @@ list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.
 # Loading Data
 
 ``` r
-Data <- read_excel('/Users/diaz/Documents/Masters/Coursework/First Semester/Macroeconomics/Project/Macro Project/data/Macro_Data.xlsx',
+Data <- read_excel('data/Macro_Data.xlsx',
                    sheet = "Logged Data")  # change to your sheet name
 
 head(Data)

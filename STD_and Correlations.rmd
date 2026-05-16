@@ -22,7 +22,7 @@ list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.
 # Loading Data
 
 ```{r}
-Data <- read_excel('/Users/diaz/Documents/Masters/Coursework/First Semester/Macroeconomics/Project/Macro Project/data/Macro_Data.xlsx',
+Data <- read_excel('data/Macro_Data.xlsx',
                    sheet = "Logged Data")  # change to your sheet name
 
 head(Data)
