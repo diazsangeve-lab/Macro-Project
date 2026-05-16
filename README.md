@@ -1,7 +1,11 @@
 # Purpose
 
-Providing the r code required to obtain the statistics for our
-Macroeconomics project.
+The primary objective of the accompanying R code is to empirically
+evaluate the stylised facts of the United States business cycle over a
+forty-three-year period spanning from Q1 1982 to Q3 2025. Specifically,
+it is constructed to obtain key macroeconomic time-series data, filter
+out long-term structural trends, and compute crucial second-order
+moments, being standard deviations and correlation coefficients.
 
 ``` r
 rm(list = ls()) # Clean your environment:
@@ -9,57 +13,17 @@ gc() # garbage collection - It can be useful to call gc after a large object has
 ```
 
     ##           used (Mb) gc trigger (Mb) limit (Mb) max used (Mb)
-    ## Ncells  563368 30.1    1251795 66.9         NA   715654 38.3
-    ## Vcells 1075718  8.3    8388608 64.0      16384  2010319 15.4
+    ## Ncells  563490 30.1    1252147 66.9         NA   715648 38.3
+    ## Vcells 1076052  8.3    8388608 64.0      16384  2010398 15.4
 
 ``` r
-library(tidyverse)
+if(!require(pacman)) { install.packages("pacman"); require(pacman)}
 ```
 
-    ## ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
-    ## ✔ dplyr     1.2.1     ✔ readr     2.2.0
-    ## ✔ forcats   1.0.1     ✔ stringr   1.6.0
-    ## ✔ ggplot2   4.0.2     ✔ tibble    3.3.1
-    ## ✔ lubridate 1.9.5     ✔ tidyr     1.3.2
-    ## ✔ purrr     1.2.2     
-    ## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
-    ## ✖ dplyr::filter() masks stats::filter()
-    ## ✖ dplyr::lag()    masks stats::lag()
-    ## ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+    ## Loading required package: pacman
 
 ``` r
-if(!require(readxl)) { install.packages("readxl"); require(readxl)} 
-```
-
-    ## Loading required package: readxl
-
-``` r
-library(readxl)
-if(!require(mFilter)) { install.packages("mFilter"); require(mFilter)} 
-```
-
-    ## Loading required package: mFilter
-
-``` r
-library(mFilter)
-if(!require(knitr)) { install.packages("knitr"); require(knitr)} 
-```
-
-    ## Loading required package: knitr
-
-``` r
-library(knitr)
-if(!require(tseries)) { install.packages("tseries");
-    require(tseries)} 
-```
-
-    ## Loading required package: tseries
-    ## Registered S3 method overwritten by 'quantmod':
-    ##   method            from
-    ##   as.zoo.data.frame zoo
-
-``` r
-library(tseries)
+pacman::p_load(tidyverse, readxl, mFilter, knitr, tseries)
 
 list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
 ```

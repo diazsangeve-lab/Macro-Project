@@ -357,8 +357,23 @@ display: none;
 </div>
 
 
+<div id="purpose" class="section level1">
+<h1>Purpose</h1>
+<p>The purpose of this R code is to calculate the steady-state values
+for US GDP and public debt over the sample period from Q1 1982 to Q3
+2025.</p>
+</div>
 <div id="api-configuration" class="section level1">
 <h1>1. API configuration</h1>
+<p>To configure the data pipeline, you must first obtain a free API key
+by registering for an account on the St. Louis Fed (FRED) website and
+requesting a key through your account dashboard. To use this key
+securely without hardcoding your credentials into the script, save it in
+your local environment file (typically an .Renviron file) as
+FRED_API_KEY=“your_key_here”. When the script executes,
+Sys.getenv(“FRED_API_KEY”) automatically retrieves this value from your
+system, keeping your credentials secure and making the code easily
+reproducible across different machines.</p>
 <pre class="r"><code># Set your FRED API key
 api_key &lt;- Sys.getenv(&quot;FRED_API_KEY&quot;)</code></pre>
 </div>
@@ -370,7 +385,6 @@ end_qtr &lt;- as.Date(&quot;2025-07-01&quot;)
 # Fetch National Accounts and Debt 
 debt_gdp &lt;- fredr(series_id = &quot;GFDEGDQ188S&quot;, observation_start = start_qtr, observation_end = end_qtr)
 real_gdp &lt;- fredr(series_id = &quot;GDPC1&quot;, observation_start = start_qtr, observation_end = end_qtr)
-real_cons &lt;- fredr(series_id = &quot;PCECC96&quot;, observation_start = start_qtr, observation_end = end_qtr)
 
 # Nominal Government Expenditures and Nominal GDP
 gov_exp &lt;- fredr(series_id = &quot;W019RCQ027SBEA&quot;, observation_start = start_qtr, observation_end = end_qtr)
@@ -386,52 +400,29 @@ pop &lt;- fredr(series_id = &quot;LFWA64TTUSM647S&quot;, observation_start = sta
 <pre class="r"><code># Ensure alignment (assuming data frames are identically ordered by date)
 # 1. Transform to Real Per Capita series
 real_gdp_pc &lt;- real_gdp$value / pop$value
-real_cons_pc &lt;- real_cons$value / pop$value
 
 # (Note: Gov Expenditure and Debt ratios are scale-free, so we can use them directly or construct their real per capita equivalents if needed for standard deviations later)
 g_y_series &lt;- gov_exp$value / nom_gdp$value
 
 # 2. Compute the Steady-State Ratios
 b_y &lt;- mean(debt_gdp$value, na.rm = TRUE) / 100
-c_y &lt;- mean(real_cons_pc / real_gdp_pc, na.rm = TRUE)  # Mathematically identical, conceptually robust
 g_y &lt;- mean(g_y_series, na.rm = TRUE)
 
-# 3. Compute Gross Quarterly Interest Rate (R)
-mean_fed_funds &lt;- mean(fed_funds$value, na.rm = TRUE)
-R &lt;- 1 + (mean_fed_funds / 400)
-
-# 4. Compute Gross Quarterly Inflation (Pi)
-cpi_pct &lt;- (cpi$value / dplyr::lag(cpi$value, 4) - 1) * 100
-mean_inflation &lt;- mean(cpi_pct, na.rm = TRUE)
-Pi &lt;- 1 + (mean_inflation / 400)
-
-# 5. Compute Discount Factor and Primary Surplus
-beta &lt;- Pi / R
-s_y &lt;- ((1 / beta) - 1) * b_y
 
 # 6. Compile Results
 calibrated_results &lt;- tibble(
-  Parameter = c(&quot;Debt-to-GDP (b_y)&quot;, 
-                &quot;Consumption-to-GDP (c_y)&quot;, 
-                &quot;Gov Expenditure-to-GDP (g_y)&quot;,
-                &quot;Gross Quarterly Interest Rate (R)&quot;, 
-                &quot;Gross Quarterly Inflation (Pi)&quot;, 
-                &quot;Discount Factor (beta)&quot;, 
-                &quot;Primary Surplus-to-GDP (s_y)&quot;),
-  Value = c(b_y, c_y, g_y, R, Pi, beta, s_y)
+  Parameter = c(&quot;Debt-to-GDP (b_y)&quot;,
+                &quot;Gov Expenditure-to-GDP (g_y)&quot;
+                ),
+  Value = c(b_y, g_y)
 )
 
 print(calibrated_results)</code></pre>
-<pre><code>## # A tibble: 7 × 2
-##   Parameter                           Value
-##   &lt;chr&gt;                               &lt;dbl&gt;
-## 1 Debt-to-GDP (b_y)                 0.746  
-## 2 Consumption-to-GDP (c_y)          0.659  
-## 3 Gov Expenditure-to-GDP (g_y)      0.230  
-## 4 Gross Quarterly Interest Rate (R) 1.01   
-## 5 Gross Quarterly Inflation (Pi)    1.01   
-## 6 Discount Factor (beta)            0.997  
-## 7 Primary Surplus-to-GDP (s_y)      0.00202</code></pre>
+<pre><code>## # A tibble: 2 × 2
+##   Parameter                    Value
+##   &lt;chr&gt;                        &lt;dbl&gt;
+## 1 Debt-to-GDP (b_y)            0.746
+## 2 Gov Expenditure-to-GDP (g_y) 0.230</code></pre>
 </div>
 
 
